@@ -1,138 +1,123 @@
-# DDD Magenic Masters Class
+# DDD
 
-Domain Driven Design
+## Overview
 
-## Prerequisites
+This document is to be used to capture the description of the project. Each
+update is to be posted at the top, and dated.
 
-0. Install or Update [GIT](https://git-scm.com)
-1. Install or Update [Docker](https://www.docker.com/products/docker-desktop)
-2. Install or update the [.NET Core 3.1 LTS SDK](https://dotnet.microsoft.com/download/dotnet-core/3.1)
-3. Install or Update [VSCode](https://code.visualstudio.com/download) or [Visual-Studio](https://visualstudio.microsoft.com/downloads/), or your favorite code editor for **C#**
+## 6/14 - Business
 
-## Pull the source code
+I will be using my current Softvision project for my model domain, Trane
+Technologies. I have been working with this company for over a year. I have not
+seen any "Domain" code, however there are several projects that share concepts
+that may or may not turn into bounded contexts. I will first describe the 
+business, and then walk through terms I think are important to the model.
 
-```sh
-cd $mygitroot
-git clone https://github.com/Magenic/DDD.git
-cd DDD
-```
+### Proposal
 
-## Set up and reboot docker
+Trane is in the business of designing and selling HVAC systems to industrial
+companies. The process starts when a contractor sends out requests for 
+proposals. A Trane sales engineer will then design a system. This design 
+includes the devices, like air dampers, valves, and coils, and the controllers 
+which are the computers for the system. The controllers read in sensor 
+information, and determine if they need to take action.
 
-In the docker settings, add the `DDD/Data` folder to the *Settings/Resources/File Sharing*
+The tasks a system performs is spelled out in paragraph form in a sequence 
+of operation (SOO for short). This text tells the field technician when devices 
+need to be activated. For example turn the supply fan on.
 
-![Settings](Docker-FileShare.png)
+A bill of materials is created that has a short description of each part, and 
+the estimated cost of each part.
 
-> Apply and restart docker!
+The proposal is then printed as a document and submitted.
 
-## Folders
+### Engineering
 
-* Code/ - Code
-* Data/ - Data and helpers
-* Scripts/ - Docker Scripts to spin up/down SQL Server for code demos
+If Trane wins the project, the documents are sent to a Trane HVAC engineer. The 
+engineer reviews the documents, and reviews the controller details. They can 
+make changes to devices in the system to better fit the requirements. Details 
+are added to the drawings to include how each device will connect to the 
+controller and expansion modules. The engineer makes sure the Field Technician 
+has enough information to connect each device to the controller and how each 
+wire will be labeled.
 
-## Scripts
+### Field Technician
 
-> All of the script are designed to be used with [GIT-BASH](https://git-scm.herokuapp.com/book/en/v2/Getting-Started-The-Command-Line)
+When all of the devices and parts have been delivered, a field technician 
+comes on site and installs the system. They install all the devices, connect 
+wires to the controller, and configure the controller. The controller needs to 
+be programmed to tell it what to do with the various points that are connected. 
+If the field technician connected, and programmed everything properly, they 
+can test the system using the sequence of operations. 
 
-The sample code will use a linix based Docker container image of [Microsoft SQL Server 2017](https://hub.docker.com/_/microsoft-mssql-server) where the port for sql of ~~1433~~ is remapped to **1466** to avoid colliding with any local instances you may have.
+### Configurator
 
-If you need to modify the scripts to suit your particular needs you can modify the [environment variables](https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-configure-environment-variables?view=sql-server-2017) as desired.
+The current systems at Trane allow for the engineering documents to be exported 
+and imported into software called *Configurator*. Configurator creates the 
+programs a field technician installs on a controller. If the controller in the 
+document is a UC400 or a UC600, the Engineer can export the programs for the 
+field technician so they do not have to program it manually.
 
-## How to use the provided scripts
+### Rules
 
-Start by changing directory to `scripts/`
+I haven't mentioned rules yet, but most systems are designed using them. Trane 
+engineers fill out a form with dropdown boxes that describe the *features* of a 
+system. Then the software determines which devices need to be included, what 
+paragraphs of SOO text to include, which controller to include, and how the 
+devices will connect to the controller.
 
-```bash
-cd scripts
-```
+### Point Names
 
-### Start Docker Image
+Point names can be many things. A UC600 for instance has 8 analog outputs. They 
+are labeled AO1 - AO8. It also has 8 points that can either be universal inputs 
+or analog outputs, labeled UI1/AO9, UI2/AO10.
 
-```bash
-./start-sql.sh
-2017-CU21-ubuntu-16.04: Pulling from mssql/server
-Digest: sha256:586a0e2535f191c59ff7b9aa1a70ae03bac0747ef0d2021cdea24326bcf2c3e4
-Status: Image is up to date for mcr.microsoft.com/mssql/server:2017-CU21-ubuntu-16.04
-mcr.microsoft.com/mssql/server:2017-CU21-ubuntu-16.04
-4a771b7bf116b9b0acdbb6ecd005346a7163f31d48520ddbcaca1e08cd4a546b
-SQL Running on Port: 1466
-```
+Sometimes point names are used to describe the *purpose* of a point. For example 
+**supply fan** or **differential pressure switch**. 
 
-> **Info:** SQL Server takes a while to start, so give it a few minutes to get up and running 
+### Cable Tag
 
-This will install and start SQL:
+Cable tags are used to label wires at the device and the controller. An example 
+tag would be **1107**.
 
-* Address: `localhost,1466`
-* Username: `sa`
-* Password: `ddd20demoSQL-`
-* Port: `1466`
+### Point Types
 
-Docker Info:
+Points can either be
 
-* Container Name: `ddd-sql`
-* Image: `mcr.microsoft.com/mssql/server:2017-CU21-ubuntu-16.04`
+### Ubiquitous Language
 
-### Stop Docker Image
+Some important terms from the text above:
 
-```bash
-./stop-sql.sh
-```
+#### Controller
 
-### Bash Shell into SQL Server Docker Image
+Determines when, and what to do with the HVAC system after it has been 
+installed.
 
-> Warning: You will be `root`
+#### Controller Point
 
-```bash
-./cli-bash.sh
-# 
-```
-Use `exit` to close the shell
+Place for device to connect
 
-### SQLCMD on SQL Server Docker Image
+#### Device
 
-This will open the command line SQLCMD prompt:
+Anything that connects to a controller. An Air Duct, is not a device. A damper 
+with an attached actuator is a device. A damper itself is not a device.
 
-```bash
-./prompt-sql.sh
-1> 
-```
+#### Part
 
-Use `exit` to close the shell
+Air ducts, Air filters are parts of a system.
 
-### Connection String for C# ADO or Entity Framework
+#### Sequence of operations
 
-```cs
-var connectionString = "Server=localhost,1466;Database={Insert DB Name here};User Id=sa;Password=ddd20demoSQL-;"
-```
+Text used to describe how a system should behave given specific inputs.
 
-### SQL Server Management Studio
+#### Submittal
 
-If you want to use [SSMS](https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssm) 
+Documents submitted to the building contractor.
 
-1. Download or update it
+#### Engineering Documents
 
-2. Start it
- 
-3. In the new connection dialog
-![New Connection](SSMS-Connect.png)
+Documents that the field technician uses to install and test the system.
 
-4. Use SSMS as usual
+#### Program
 
-![SSMS Browse](SSMS-Browse.png)
-
-## Bicycle Schema
-
-![Schema](Bicycle_DB_Diagram.png)
-
-## YouTube Videos related to DDD
-
-[YouTube DDD Videos](https://www.youtube.com/user/spookdejur1962/search?query=DDD)
-
-## About Us
-
-> Stuart Williams
-> Larry Smithmier 
-> Rocky Lhotka 
-
-
+Tells the controller what to do with a particular point.
